@@ -12,7 +12,6 @@ import {handleLocationChange} from './handleLocationChange';
 import {handleHeartbeat} from './handleHeartbeat';
 import {BGLocT} from './types';
 import {handleProviderChange} from './handleProviderChange';
-import {readGeoLocUserConfigSettings} from './userSettingConfigs';
 import {backgroundGeoLocConfig} from './config';
 
 const BGLocCtx = createContext<BGLocT | null>(null);
@@ -28,14 +27,11 @@ export function BackgroundGeoLocationProvider({children}: PropsWithChildren) {
     const onProviderChange = handleProviderChange();
 
     // 2. ready the plugin
-    Promise.all([
-      BackgroundGeolocation.findOrCreateTransistorAuthorizationToken(
-        'org_EC26x',
-        'user_EC26x',
-        'https://tracker.transistorsoft.com',
-      ),
-      readGeoLocUserConfigSettings(),
-    ]).then(([transistorAuthorizationToken]) => {
+    BackgroundGeolocation.findOrCreateTransistorAuthorizationToken(
+      'org_EC26x',
+      'user_EC26x',
+      'https://tracker.transistorsoft.com',
+    ).then(transistorAuthorizationToken => {
       BackgroundGeolocation.ready({
         ...backgroundGeoLocConfig,
         transistorAuthorizationToken,
