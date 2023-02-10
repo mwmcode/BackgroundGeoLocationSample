@@ -3,6 +3,7 @@ import React, {
   PropsWithChildren,
   useContext,
   useEffect,
+  useLayoutEffect,
   useState,
 } from 'react';
 import BackgroundGeolocation, {
@@ -17,10 +18,10 @@ import {backgroundGeoLocConfig} from './config';
 const BGLocCtx = createContext<BGLocT | null>(null);
 
 export function BackgroundGeoLocationProvider({children}: PropsWithChildren) {
-  const [enabled, setEnabled] = useState<boolean | undefined>(undefined);
   const [location, setLocation] = useState<Location>();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    console.log('efffect')
     // 1. subscribe to events
     const onLocation = handleLocationChange(setLocation);
     const onHeartBeatBackground = handleHeartbeat();
@@ -36,33 +37,22 @@ export function BackgroundGeoLocationProvider({children}: PropsWithChildren) {
         ...backgroundGeoLocConfig,
         transistorAuthorizationToken,
       }).then(state => {
-        console.log('state.enabled: ', state?.enabled);
-        setEnabled(state?.enabled);
+        if (!state.enabled) {
+          BackgroundGeolocation.start();
+        }
       });
     });
 
     // 3. remove subscriptions
     return () => {
+      console.log('ssssssttttooopp')
       onLocation.remove();
       onHeartBeatBackground.remove();
       onProviderChange.remove();
     };
   }, []);
-
-  useEffect(() => {
-    if (enabled) {
-      BackgroundGeolocation.start();
-    } else {
-      BackgroundGeolocation.stop();
-      setLocation(undefined);
-    }
-  }, [enabled]);
-
-  return (
-    <BGLocCtx.Provider value={{location, enabled}}>
-      {children}
-    </BGLocCtx.Provider>
-  );
+console.log('okokok')
+  return <BGLocCtx.Provider value={{location}}>{children}</BGLocCtx.Provider>;
 }
 
 export function useBackgroundGeoLocation() {
